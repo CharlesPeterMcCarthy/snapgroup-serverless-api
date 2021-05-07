@@ -44,3 +44,11 @@ export interface Subscription extends DBItem {
 		subscribedAt: string;
 	};
 }
+
+export interface Snap {
+	snapId: string;
+	imageUrl: string;
+	username: string;
+	time: string;
+	seenBy: string[];
+}

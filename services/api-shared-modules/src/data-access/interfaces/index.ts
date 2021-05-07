@@ -2,6 +2,7 @@ import { BaseFunctionExpressionPredicate, BetweenExpressionPredicate, BinaryComp
 
 export { IUserRepository } from './IUserRepository';
 export { ISubscriptionRepository } from './ISubscriptionRepository';
+export { ISnapsRepository } from './ISnapsRepository';
 
 export interface QueryKey {
 	pk?: string;

@@ -1,4 +1,4 @@
-service: api-websockets-service-${self:custom.projectName}
+service: api-snaps-service-${self:custom.projectName}
 frameworkVersion: ">=1.44.0"
 
 custom:
@@ -14,7 +14,11 @@ provider:
   region: eu-west-1
   environment:
     tableName: ${file(../../serverless.common.yml):custom.generalTableName}
-    ENVIRONMENT: ${opt:stage, self:provider.stage}
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': ${self:custom.stage}-${self:custom.projectName}-ApiGatewayRestApiId
+    restApiRootResourceId:
+      'Fn::ImportValue': ${self:custom.stage}-${self:custom.projectName}-ApiGatewayRestApiRootResourceId
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -27,34 +31,16 @@ provider:
         - dynamodb:DeleteItem
       Resource:
         - '*'
-    - Effect: Allow
-      Action:
-        - 'execute-api:ManageConnections'
-      Resource:
-        - 'arn:aws:execute-api:*:*:**/@connections/*'
 
 plugins:
   - serverless-offline
   - serverless-webpack
 
 functions:
-  connect:
-    handler: src/handler.$wsConnect
+  getAllSnaps:
+    handler: src/handler.getAllSnaps
     events:
-      - websocket:
-          route: $connect
-  disconnect:
-    handler: src/handler.$wsDisconnect
-    events:
-      - websocket:
-          route: $disconnect
-  default:
-    handler: src/handler.$wsDefault
-    events:
-      - websocket:
-          route: $default
-  updateConnection:
-    handler: src/handler.updateConnection
-    events:
-      - websocket:
-          route: updateConnection
+      - http:
+          path: /snaps
+          method: get
+          cors: true

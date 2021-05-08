@@ -41,7 +41,7 @@ functions:
     handler: src/handler.getAllSnaps
     events:
       - http:
-          path: /snaps
+          path: /snaps/{username}
           method: get
           cors: true
   createSnap:
@@ -55,6 +55,6 @@ functions:
     handler: src/handler.viewSnap
     events:
       - http:
-          path: /snaps/view/
+          path: /snaps/view
           method: put
           cors: true

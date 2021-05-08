@@ -14,12 +14,23 @@ export class SnapsController {
 	public constructor(private unitOfWork: UnitOfWork) { }
 
 	public getAllSnaps: ApiHandler = async (event: ApiEvent, context: ApiContext): Promise<ApiResponse> => {
+		if (!event.pathParameters || !event.pathParameters.username)
+			return ResponseBuilder.badRequest(ErrorCode.BadRequest, 'Invalid request parameters');
+
 		try {
-			console.log('test ****');
 			const snaps: Snap[] = await this.unitOfWork.Snaps.getAll();
 			if (!snaps) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to retrieve Snaps');
 
-			return ResponseBuilder.ok({ snaps });
+			console.log(event.pathParameters.username);
+
+			const filteredSnaps: Snap[] = snaps
+				.filter((s: Snap) => s.username !== event.pathParameters.username)
+				.map((s: Snap) => { // Remove URL from snaps that have been viewed
+					if (s.seenBy.indexOf(event.pathParameters.username) > -1) delete s.imageUrl;
+					return s;
+				});
+
+			return ResponseBuilder.ok({ snaps: filteredSnaps });
 		} catch (err) {
 			console.log(err);
 			return ResponseBuilder.internalServerError(err, err.message);
@@ -54,13 +65,16 @@ export class SnapsController {
 			console.log(details);
 
 			const snap: Snap = await this.unitOfWork.Snaps.get(details.snapId, details.creatorUsername);
+			console.log(snap);
 			if (!snap) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to find Snap');
 
 			snap.seenBy.push(details.username);
 
+			console.log(snap);
+
 			const res: Snap = await this.unitOfWork.Snaps.update(snap);
 
-			return ResponseBuilder.ok({ });
+			return ResponseBuilder.ok({ snap: res });
 		} catch (err) {
 			console.log(err);
 			return ResponseBuilder.internalServerError(err, err.message);

@@ -45,7 +45,7 @@ export interface Subscription extends DBItem {
 	};
 }
 
-export interface Snap {
+export interface Snap extends DBItem {
 	snapId: string;
 	imageUrl: string;
 	username: string;

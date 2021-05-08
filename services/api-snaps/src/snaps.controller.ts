@@ -8,10 +8,14 @@ import {
 	UnitOfWork,
 	Snap
 } from '../../api-shared-modules/src';
+import { SNSPublish } from './sns-publish';
 
 export class SnapsController {
 
-	public constructor(private unitOfWork: UnitOfWork) { }
+	public constructor(
+		private unitOfWork: UnitOfWork,
+		private snsPublish: SNSPublish
+	) { }
 
 	public getAllSnaps: ApiHandler = async (event: ApiEvent, context: ApiContext): Promise<ApiResponse> => {
 		if (!event.pathParameters || !event.pathParameters.username)
@@ -48,6 +52,8 @@ export class SnapsController {
 			const res: Snap = await this.unitOfWork.Snaps.create(snap);
 			if (!res) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to save Snap');
 
+			await this.snsPublish.publishSnap(res);
+
 			return ResponseBuilder.ok({ snap: res });
 		} catch (err) {
 			console.log(err);
@@ -62,17 +68,14 @@ export class SnapsController {
 			if (!details || !details.username || !details.creatorUsername || !details.snapId)
 				return ResponseBuilder.badRequest(ErrorCode.BadRequest, 'Invalid request parameters');
 
-			console.log(details);
-
 			const snap: Snap = await this.unitOfWork.Snaps.get(details.snapId, details.creatorUsername);
-			console.log(snap);
 			if (!snap) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to find Snap');
 
-			snap.seenBy.push(details.username);
-
-			console.log(snap);
+			if (snap.seenBy.indexOf(details.username) > -1) snap.seenBy.push(details.username);
 
 			const res: Snap = await this.unitOfWork.Snaps.update(snap);
+
+			await this.snsPublish.publishSnap(res);
 
 			return ResponseBuilder.ok({ snap: res });
 		} catch (err) {

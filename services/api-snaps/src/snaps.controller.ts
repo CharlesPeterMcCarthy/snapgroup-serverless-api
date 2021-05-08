@@ -28,7 +28,7 @@ export class SnapsController {
 			console.log(event.pathParameters.username);
 
 			const filteredSnaps: Snap[] = snaps
-				.filter((s: Snap) => s.username !== event.pathParameters.username)
+				// .filter((s: Snap) => s.username !== event.pathParameters.username)
 				.map((s: Snap) => { // Remove URL from snaps that have been viewed
 					if (s.seenBy.indexOf(event.pathParameters.username) > -1) delete s.imageUrl;
 					return s;

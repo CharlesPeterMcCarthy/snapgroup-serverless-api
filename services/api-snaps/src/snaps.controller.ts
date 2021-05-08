@@ -44,4 +44,23 @@ export class SnapsController {
 		}
 	}
 
+	public viewSnap: ApiHandler = async (event: ApiEvent, context: ApiContext): Promise<ApiResponse> => {
+		try {
+			const details: { username: string; creatorUsername: string; snapId: string } = JSON.parse(event.body);
+
+			if (!details || !details.username || !details.creatorUsername || !details.snapId)
+				return ResponseBuilder.badRequest(ErrorCode.BadRequest, 'Invalid request parameters');
+
+			console.log(details);
+
+			const res: Snap = await this.unitOfWork.Snaps.get(details.snapId, details.creatorUsername);
+			if (!res) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to find Snap');
+
+			return ResponseBuilder.ok({ });
+		} catch (err) {
+			console.log(err);
+			return ResponseBuilder.internalServerError(err, err.message);
+		}
+	}
+
 }

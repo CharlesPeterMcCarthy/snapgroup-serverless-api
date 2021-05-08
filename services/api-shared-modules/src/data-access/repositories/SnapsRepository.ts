@@ -7,6 +7,17 @@ import { v4 as uuid } from 'uuid';
 
 export class SnapsRepository extends Repository {
 
+	public async get(snapId: string, creatorUsername: string): Promise<Snap> {
+		try {
+			return await this.db.get(Object.assign(new SnapItem(), {
+				pk: `snap#${snapId}`,
+				sk: `username#${creatorUsername}`
+			}));
+		} catch (err) {
+			return undefined;
+		}
+	}
+
 	public async getAll(): Promise<Snap[]> {
 		const keyCondition: QueryKey = {
 			entity: 'snap'
@@ -31,7 +42,7 @@ export class SnapsRepository extends Repository {
 		return this.db.put(Object.assign(new SnapItem(), {
 			entity: 'snap',
 			time: date,
-			interestId: id,
+			snapId: id,
 			seenBy: [],
 			pk: `snap#${id}`,
 			sk: `username#${snap.username}`,

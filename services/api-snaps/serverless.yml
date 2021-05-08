@@ -51,3 +51,10 @@ functions:
           path: /snaps
           method: post
           cors: true
+  viewSnap:
+    handler: src/handler.viewSnap
+    events:
+      - http:
+          path: /snaps/view/
+          method: put
+          cors: true

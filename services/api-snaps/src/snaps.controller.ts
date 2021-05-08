@@ -41,9 +41,9 @@ export class SnapsController {
 		}
 	}
 
-	public createSnap: ApiHandler = async (event: ApiEvent, context: ApiContext): Promise<ApiResponse> => {
+	public createSnap: ApiHandler = async (event: any, context: ApiContext): Promise<ApiResponse> => {
 		try {
-			const snap: Partial<Snap> = JSON.parse(event.body);
+			const snap: Partial<Snap> = event;
 
 			if (!snap) return ResponseBuilder.badRequest(ErrorCode.BadRequest, 'Invalid request parameters');
 
@@ -52,7 +52,26 @@ export class SnapsController {
 			const res: Snap = await this.unitOfWork.Snaps.create(snap);
 			if (!res) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to save Snap');
 
-			await this.snsPublish.publishSnap(res);
+			return ResponseBuilder.ok({ snap: res });
+		} catch (err) {
+			console.log(err);
+			return ResponseBuilder.internalServerError(err, err.message);
+		}
+	}
+
+	public viewSnap: ApiHandler = async (event: any, context: ApiContext): Promise<ApiResponse> => {
+		try {
+			const details: { username: string; creatorUsername: string; snapId: string } = event;
+
+			if (!details || !details.username || !details.creatorUsername || !details.snapId)
+				return ResponseBuilder.badRequest(ErrorCode.BadRequest, 'Invalid request parameters');
+
+			const snap: Snap = await this.unitOfWork.Snaps.get(details.snapId, details.creatorUsername);
+			if (!snap) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to find Snap');
+
+			if (snap.seenBy.indexOf(details.username) === -1) snap.seenBy.push(details.username);
+
+			const res: Snap = await this.unitOfWork.Snaps.update(snap);
 
 			return ResponseBuilder.ok({ snap: res });
 		} catch (err) {
@@ -61,23 +80,14 @@ export class SnapsController {
 		}
 	}
 
-	public viewSnap: ApiHandler = async (event: ApiEvent, context: ApiContext): Promise<ApiResponse> => {
+	public publishSnap: ApiHandler = async (event: ApiEvent, context: ApiContext): Promise<ApiResponse> => {
+		const body: any = JSON.parse(event.body);
+		const snap: Snap = body.snap;
+
 		try {
-			const details: { username: string; creatorUsername: string; snapId: string } = JSON.parse(event.body);
+			await this.snsPublish.publishSnap(snap);
 
-			if (!details || !details.username || !details.creatorUsername || !details.snapId)
-				return ResponseBuilder.badRequest(ErrorCode.BadRequest, 'Invalid request parameters');
-
-			const snap: Snap = await this.unitOfWork.Snaps.get(details.snapId, details.creatorUsername);
-			if (!snap) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to find Snap');
-
-			if (snap.seenBy.indexOf(details.username) > -1) snap.seenBy.push(details.username);
-
-			const res: Snap = await this.unitOfWork.Snaps.update(snap);
-
-			await this.snsPublish.publishSnap(res);
-
-			return ResponseBuilder.ok({ snap: res });
+			return ResponseBuilder.ok({ snap });
 		} catch (err) {
 			console.log(err);
 			return ResponseBuilder.internalServerError(err, err.message);

@@ -24,7 +24,8 @@ export class SnapsRepository extends Repository {
 		};
 
 		const queryOptions: QueryOptions = {
-			indexName: 'entity-sk-index'
+			indexName: 'entity-sk2-index',
+			scanIndexForward: false
 		};
 
 		const queryIterator: QueryIterator<SnapItem> = this.db.query(SnapItem, keyCondition, queryOptions);

@@ -9,3 +9,4 @@ const controller: SnapsController = new SnapsController(unitOfWork, snsPublish);
 export const getAllSnaps: ApiHandler = controller.getAllSnaps;
 export const createSnap: ApiHandler = controller.createSnap;
 export const viewSnap: ApiHandler = controller.viewSnap;
+export const publishSnap: ApiHandler = controller.publishSnap;

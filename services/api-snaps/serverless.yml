@@ -36,6 +36,7 @@ provider:
 plugins:
   - serverless-offline
   - serverless-webpack
+  - serverless-step-functions
 
 functions:
   getAllSnaps:
@@ -47,15 +48,46 @@ functions:
           cors: true
   createSnap:
     handler: src/handler.createSnap
-    events:
-      - http:
-          path: /snaps
-          method: post
-          cors: true
   viewSnap:
     handler: src/handler.viewSnap
-    events:
-      - http:
-          path: /snaps/view
-          method: put
-          cors: true
+  publishSnap:
+    handler: src/handler.publishSnap
+
+stepFunctions:
+  stateMachines:
+    createSnapStepFunc:
+      events:
+        - http:
+            path: /snaps
+            method: post
+            cors: true
+      definition:
+        Comment: "Create Snap Flow"
+        StartAt: CreateSnap
+        States:
+          CreateSnap:
+            Type: Task
+            Resource: arn:aws:lambda:eu-west-1:068475715603:function:api-snaps-service-SnapGroups-dev-createSnap
+            Next: PublishSnap
+          PublishSnap:
+            Type: Task
+            Resource: arn:aws:lambda:eu-west-1:068475715603:function:api-snaps-service-SnapGroups-dev-publishSnap
+            End: true
+    viewSnapStepFunc:
+      events:
+        - http:
+            path: /snaps/view
+            method: put
+            cors: true
+      definition:
+        Comment: "View Snap Flow"
+        StartAt: ViewSnap
+        States:
+          ViewSnap:
+            Type: Task
+            Resource: arn:aws:lambda:eu-west-1:068475715603:function:api-snaps-service-SnapGroups-dev-viewSnap
+            Next: PublishSnap
+          PublishSnap:
+            Type: Task
+            Resource: arn:aws:lambda:eu-west-1:068475715603:function:api-snaps-service-SnapGroups-dev-publishSnap
+            End: true

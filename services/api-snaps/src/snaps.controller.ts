@@ -15,11 +15,31 @@ export class SnapsController {
 
 	public getAllSnaps: ApiHandler = async (event: ApiEvent, context: ApiContext): Promise<ApiResponse> => {
 		try {
+			console.log('test ****');
 			const snaps: Snap[] = await this.unitOfWork.Snaps.getAll();
 			if (!snaps) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to retrieve Snaps');
 
 			return ResponseBuilder.ok({ snaps });
 		} catch (err) {
+			console.log(err);
+			return ResponseBuilder.internalServerError(err, err.message);
+		}
+	}
+
+	public createSnap: ApiHandler = async (event: ApiEvent, context: ApiContext): Promise<ApiResponse> => {
+		try {
+			const snap: Partial<Snap> = JSON.parse(event.body);
+
+			if (!snap) return ResponseBuilder.badRequest(ErrorCode.BadRequest, 'Invalid request parameters');
+
+			console.log(snap);
+
+			const res: Snap = await this.unitOfWork.Snaps.create(snap);
+			if (!res) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to save Snap');
+
+			return ResponseBuilder.ok({ snap: res });
+		} catch (err) {
+			console.log(err);
 			return ResponseBuilder.internalServerError(err, err.message);
 		}
 	}

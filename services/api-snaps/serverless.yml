@@ -44,3 +44,10 @@ functions:
           path: /snaps
           method: get
           cors: true
+  createSnap:
+    handler: src/handler.createSnap
+    events:
+      - http:
+          path: /snaps
+          method: post
+          cors: true

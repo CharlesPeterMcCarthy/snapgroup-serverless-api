@@ -9,7 +9,7 @@ export interface DynamoDbItem {
 }
 
 // TODO: Implement a mechanism to change this automatically based on environment
-@table('SnapGroups-GENERAL')
+@table('dev-SnapGroups-GENERAL')
 export class DynamoDbItem implements DynamoDbItem {
 	@hashKey()
 	public pk!: string;

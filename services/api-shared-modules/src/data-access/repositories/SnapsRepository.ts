@@ -51,4 +51,14 @@ export class SnapsRepository extends Repository {
 		}));
 	}
 
+	public async update(snap: Snap): Promise<Snap> {
+		return this.db.update(Object.assign(new SnapItem(), {
+			pk: `snap#${snap.snapId}`,
+			sk: `username#${snap.username}`,
+			...snap
+		}), {
+			onMissing: 'skip'
+		});
+	}
+
 }

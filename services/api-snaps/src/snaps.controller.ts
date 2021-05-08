@@ -53,8 +53,12 @@ export class SnapsController {
 
 			console.log(details);
 
-			const res: Snap = await this.unitOfWork.Snaps.get(details.snapId, details.creatorUsername);
-			if (!res) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to find Snap');
+			const snap: Snap = await this.unitOfWork.Snaps.get(details.snapId, details.creatorUsername);
+			if (!snap) return ResponseBuilder.notFound(ErrorCode.GeneralError, 'Failed to find Snap');
+
+			snap.seenBy.push(details.username);
+
+			const res: Snap = await this.unitOfWork.Snaps.update(snap);
 
 			return ResponseBuilder.ok({ });
 		} catch (err) {
